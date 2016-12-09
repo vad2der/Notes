@@ -1,5 +1,17 @@
 // delete local branch
 git branch -d the_local_branch
 
-//delete remote branch
+// delete remote branch
 git push origin :the_remote_branch
+
+// check status of your repo
+git status
+
+// add files to being commited
+git add file_or_folder_name
+
+// add all files/folders
+git add -A
+
+// commit and comment
+git commit -m "your comments"
