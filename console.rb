@@ -12,3 +12,7 @@ rails-api new . -T -d sqlite3
 # . - in current directory
 # -T - without test
 # -d sqlite - specifying database to use (-d postgresql)
+
+#rspec generation
+rails g rspec:request APIDevelopment
+# will create spec/request/api_development_spec.rb with description "ApiDevelopment"
