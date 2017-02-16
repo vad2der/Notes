@@ -387,14 +387,103 @@ end
 
 # 17 create a model with authorization params
 rails-api g scaffold Image caption creator_id:integer:index --orm active_record
+# where Image - name of the model/controller, implementation with active record
+# caption - string field
+# creator_id - indexed reference
 
 # 18 in migration explicitely say that creator_id can not be empty
-class CreateThingImages < ActiveRecord::Migration  
-  def change
     create_table :images do |t|
       t.string :caption
       t.integer :creator_id, {null:false}
 
+      t.timestamps null: false # prohibit timestamp to be null
+    end
+    add_index: images, creator_id
+
+# 19 Update model if required
+# 20 Test for it
+# Scaffold higher level model, which includes previously created model (Image & Thing) via relation
+rails g model ThingImage image:references thing:references priority:integer creator_id:integer --orm active_record
+# 21 in migration
+    create_table :thing_images do |t|
+      t.references :image, {index: true, foreign_key: true, null:false}
+      t.references :thing, {index: true, foreign_key: true, null:false}
+      t.integer :priority, {null:false, default:5}
+      t.integer :creator_id, {null:false}
+
       t.timestamps null: false
     end
+# 22 update model with validation and query scopes
+class ThingImage < ActiveRecord::Base
+  belongs_to :image
+  belongs_to :thing
+
+  validates :image, :thing, presence: true
+
+  scope :prioritized,  -> { order(:priority=>:asc) }
+  scope :things,       -> { where(:priority=>0) }
+  scope :primary,      -> { where(:priority=>0).first }
+
+  scope :with_name,    ->{ joins(:thing).select("thing_images.*, things.name as thing_name")}
+  scope :with_caption, ->{ joins(:image).select("thing_images.*, images.caption as image_caption")}
+end
+
+class Image < ActiveRecord::Base
+  include Protectable
+  has_many :thing_images, inverse_of: :image, dependent: :destroy
+  has_many :things, through: :thing_images
+end
+
+class Thing < ActiveRecord::Base
+  include Protectable
+  validates :name, :presence=>true
+
+  has_many :thing_images, inverse_of: :thing, dependent: :destroy
+
+  scope :not_linked, ->(image) { where.not(:id=>ThingImage.select(:thing_id).where(:image=>image)) }
+end
+
+# 23 create ThingImage controller
+rails-api g resource ThingImage index create update destroy --skip
+
+# 24 update routes
+Rails.application.routes.draw do
+
+  get 'authn/whoami', defaults: {format: :json}
+  get 'authn/checkme'
+
+  mount_devise_token_auth_for 'User', at: 'auth'
+
+  scope :api, defaults: {format: :json}  do 
+    resources :foos, except: [:new, :edit]
+    resources :bars, except: [:new, :edit]
+    resources :images, except: [:new, :edit] do
+      post "thing_images",  controller: :thing_images, action: :create
+      get "thing_images",  controller: :thing_images, action: :image_things
+      get "linkable_things",  controller: :thing_images, action: :linkable_things
+    end
+    resources :things, except: [:new, :edit] do
+      resources :thing_images, only: [:index, :create, :update, :destroy]
+    end
+  end      
+
+  get "/client-assets/:name.:format", :to => redirect("/client/client-assets/%{name}.%{format}")
+#  get "/", :to => redirect("/client/index.html")
+
+  get '/ui'  => 'ui#index'
+  get '/ui#' => 'ui#index'
+  root "ui#index"
+end
+
+# 25 update controller
+
+# 26 udate Gemfile
+#source 'https://rails-assets.org' do
+source 'http://insecure.rails-assets.org' do
+  gem 'rails-assets-bootstrap', '~>3.3', '>= 3.3.7'
+  gem 'rails-assets-angular', '1.5.9'
+  gem 'rails-assets-angular-ui-router', '~>0.3', '>= 0.3.1'
+  gem 'rails-assets-angular-resource', '<= 1.5.9'
+  gem 'rails-assets-ng-token-auth', '~>0.0', '>= 0.0.27'
+  gem 'rails-assets-angular-cookie' #required by ng-token-auth
 end
