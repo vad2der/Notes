@@ -25,4 +25,6 @@ npm install gulp --save-dev
 
 // gulp tasks installation
 npm install --save-dev gulp-if gulp-sync del gulp-debug gulp-sass gulp-sourcemaps gulp-replace gulp-useref gulp-uglify gulp-clean-css gulp-htmlmin browser-sync
-//
+
+// read local storage from browser console
+for (var key in localStorage){console.log(key);console.log(localStorage[key]);console.log("\n");};
