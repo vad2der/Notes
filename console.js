@@ -1,5 +1,15 @@
-//to statrt browser-sync server including inner folders/filse
+// to start browser-sync server including inner folders/files 
 browser-sync start --server --directory --files "**/*"
+//
+// to install
+npm install -g browser-sync
+
+//to start server from current folder
+serve -p 3000
+//port is optional
+//
+// to install
+npm install -g serve
 
 //init npm within a project folder
 npm init
