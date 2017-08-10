@@ -38,3 +38,9 @@ npm install --save-dev gulp-if gulp-sync del gulp-debug gulp-sass gulp-sourcemap
 
 // read local storage from browser console
 for (var key in localStorage){console.log(key);console.log(localStorage[key]);console.log("\n");};
+
+// npm ng2/4 dependency WARN
+npm update
+npm uninstall -g angular-cli
+npm cache clean
+npm install -g @angular/cli
