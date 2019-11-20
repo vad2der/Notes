@@ -1,0 +1,27 @@
+FROM ruby:2.6
+
+# initial dependencies installation
+# freetds-dev for tiny_tds gem, exclude if do not use MS SQL or Azure SQL DB
+RUN apt-get update -qq && apt-get install -y build-essential libpq-dev nodejs freetds-dev
+
+RUN mkdir /olsen-geofence-be
+WORKDIR /olsen-geofence-be
+COPY Gemfile Gemfile.lock ./
+RUN bundle install
+RUN rails db:migrate
+COPY . /olsen-geofence-be
+
+# DB connection credentials
+ENV DB_USERNAME=db_user_name
+ENV DB_PASSWORD=db_user_password
+ENV DB_HOST=db_host
+ENV PRODUCTION_DB=db_name
+
+# Caching connection credentials
+ENV CACHE_HOST=localhost
+ENV CACHE_POST=6379
+ENV CACHE_PASSWORD=redis_password
+ENV CACHE_NAMESPACE=cache
+
+EXPOSE 80
+CMD bundle exec rails s -p 80 -b 0.0.0.0
